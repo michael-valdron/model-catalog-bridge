@@ -52,15 +52,6 @@ func NewImportLocationServer(stURL, port string, nf types.NormalizerFormat) *Imp
 	r.TrustedPlatform = "X-Forwarded-For"
 	r.Use(addRequestId())
 
-	// approach for implementing background processing with gin gonic discovered via some AI interaction lead to some
-	// timing issues with the periodic reconcile of the normalizer/storage-rest loop; decided not to start including
-	// the synchronization needed to sort that out.
-	// So instead, just doing a one time load attempt before registering the upsert handler to speed up location service
-	// population before 2 minute poll interval the loading of reconciled models form storage
-
-	klog.Info("one time load attempt from storage instead of waiting for the reconciliation loop")
-	i.loadFromStorage()
-
 	klog.Infof("NewImportLocationServer content len %d", len(i.content))
 	r.GET(util.ListURI, i.handleCatalogDiscoveryGet)
 	r.POST(util.UpsertURI, i.handleCatalogUpsertPost)
